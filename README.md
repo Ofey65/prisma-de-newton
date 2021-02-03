@@ -25,7 +25,7 @@ To run some script you need install Julia first. Glance at the [julia doc](https
 $ julia my-script.jl
 ```
 
-Alternatively you can open the julia shell with the command: `julia` and then include your jl file with the function `include`
+Alternatively you can open the julia shell with the command: `julia` and then include your jl file with the `include` function: 
 
 ```
 $ julia
