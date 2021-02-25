@@ -31,7 +31,7 @@ excitation = expect(dagger(σ₋) * σ₋, ψt)
 
 using Plots
 
-plot1 = plot(T, real(excitation), ylims=(0, 1), xlabel="gt", ylabel="L⟨σ₋t σ₋⟩")
+plot1 = plot(T, real(excitation), ylims=(0, 1), xlabel="gt", ylabel="L⟨σ+ σ₋⟩")
 
 plot(plot1)
 
