@@ -1,44 +1,46 @@
 using QuantumOptics
-using Plots
+using SparseArrays
 
-#= parameters =#
-δ = 0.1
+#= Parameters =#
+N = 10
 g = 1.0
 α = 4.0
 
-#= basis =#
-b_fock = FockBasis(40)
+#= f(aat) = aat^n =#
+n = .5
+
+b_fock = FockBasis(N)
 b_spin = SpinBasis(1 // 2)
 
-#= operators =#
-a = destroy(b_fock) ⊗ one(b_spin)
-σ₋ = one(b_fock) ⊗ sigmam(b_spin)
-σ₊ = one(b_fock) ⊗ sigmap(b_spin)
-fn = 0.1
+σp = one(b_fock) ⊗ sigmap(b_spin)
+σm = one(b_fock) ⊗ sigmam(b_spin)
 
-function f(n)
-    return fn * (dagger(a) * a)^n
+function f(x)
+    (x^.5) * (x - 1)^(n)
 end
 
-#= Hamiltonian =#
-Vf2 = g * ((f(1) + f(2)) * a * σ₊ + dagger(a) * (f(1) + f(2)) * σ₋) 
 
-#= initial state =#
-ψ₀ = coherentstate(b_fock, α) ⊗ spindown(b_spin)
+#= Defining A = f(a at)a =# 
+function createA(b::FockBasis)
+    diag = complex.(f.(b.offset + 1.:b.N))
+    data = spdiagm(1 => diag)
+    SparseOperator(b, data)
+end
 
-#= time steps =#
+A = createA(b_fock) ⊗ one(b_spin)
+
+V = g * (A * σp + dagger(A) * σm)
+
+ψ0 = coherentstate(b_fock, α) ⊗ spindown(b_spin)
+
 T = [0:0.01:35;]
 
-#= Schordinger's equation =#
-tout, ψt = timeevolution.schroedinger(T, ψ₀, Vf1)
-
-#= expected value for atomic excitation =#
-excitation = expect(dagger(σ₋) * σ₋, ψt)
+tout, ψt = timeevolution.schroedinger(T, ψ0, V)
+excitation = expect(dagger(σm) * σm, ψt)
 
 using Plots
 
-plot1 = plot(T, real(excitation), ylims=(0, 1), xlabel="gt", ylabel="L⟨σ+ σ₋⟩")
-
+plot1 = plot(T, real(excitation), ylims=(0, 1), xlabel="gt", ylabel="⟨ σ₊ σ₋ ⟩")
 plot(plot1)
 
 savefig("../images/non-linearjc.png")
